@@ -67,11 +67,11 @@ bash "install_bundle" do
   action :nothing
 end
 
-template "#{node['graphiti']['dir']}/config/graphiti.yml" do
+template "#{node['graphiti']['dir']}/config/settings.yml" do
   owner node['graphiti']['user']
   group node['graphiti']['user']
   mode "0644"
-  source "graphiti.yml.erb"
+  source "settings.yml.erb"
   notifies :run, "execute[restart_graphiti]"
 end
 

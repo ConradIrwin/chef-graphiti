@@ -18,7 +18,7 @@
 #
 
 default['graphiti']['user'] = "graphiti"
-default['graphiti']['ruby_version'] = "1.9.3-p362"
+default['graphiti']['ruby_version'] = "1.9.3-p374"
 default['graphiti']['dir'] = "/opt/graphiti"
 default['graphiti']['openid'] = false
 default['graphiti']['unauthenticated_networks'] = [ '127.0.0.1' ]

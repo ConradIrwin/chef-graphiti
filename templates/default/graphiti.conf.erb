@@ -1,9 +1,16 @@
 <VirtualHost *:80>
   ServerName <%= @params[:server_name] %>
-  DocumentRoot <%= @params[:docroot] %>
+  DocumentRoot <%= @params[:docroot] %>
 
-  <Directory <%= @params[:docroot] %>>
-    <% if node['graphiti']['openid'] %>
+  <Directory <%= @params[:docroot] %>>
+    Order allow,deny
+    Allow from all
+    Options FollowSymLinks
+    AllowOverride None
+  </Directory>
+
+  <% if node['graphiti']['openid'] %>
+  <Location "/">
     AuthName "Graphiti"
     AuthType OpenID
     require user <%= node['apache']['allowed_openids'].join(' ') %>
@@ -12,15 +19,10 @@
     Order allow,deny
     Allow from <%= node['graphiti']['unauthenticated_networks'].join(' ') %>
     Satisfy any
-    <% end %>
+  </Location>
+  <% end %>
 
-    Options FollowSymLinks
-    AllowOverride None
-    Order allow,deny
-    Allow from all
-  </Directory>
-
-  LogLevel info
-  ErrorLog <%= node['apache']['log_dir'] %>/<%= @params[:name] %>-error.log
-  CustomLog <%= node['apache']['log_dir'] %>/<%= @params[:name] %>-access.log combined
+  LogLevel info
+  ErrorLog <%= node['apache']['log_dir'] %>/<%= @params[:name] %>-error.log
+  CustomLog <%= node['apache']['log_dir'] %>/<%= @params[:name] %>-access.log combined
 </VirtualHost>
