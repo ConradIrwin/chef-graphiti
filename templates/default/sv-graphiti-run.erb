@@ -1,0 +1,3 @@
+#!/bin/sh
+cd <%= node.graphiti.dir %>
+exec chpst -u <%= node.graphiti.user %>:<%= node.graphiti.user %> -- bundle exec unicorn -E production -p 5001 2>&1

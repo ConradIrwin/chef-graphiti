@@ -15,19 +15,20 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#
 
-if node['graphiti']['openid']
-  include_recipe "apache2::mod_auth_openid"
+include_recipe "build-essential"
+
+include_recipe "apache2"
+include_recipe "apache2::mod_proxy"
+include_recipe "apache2::mod_proxy_http"
+include_recipe "apache2::mod_auth_openid" if node['graphiti']['openid']
+
+%w[libcurl4-gnutls-dev ruby1.9.1-full].each do |pkg|
+  apt_package pkg
 end
 
-include_recipe "rbenv"
-include_recipe "rbenv::ruby_build"
-
-rbenv_ruby node['graphiti']['ruby_version']
-
-rbenv_gem "bundler" do
-  ruby_version node['graphiti']['ruby_version']
+gem_package "bundler" do
+  gem_binary "gem"
 end
 
 user node['graphiti']['user'] do
@@ -43,27 +44,20 @@ directory node['graphiti']['dir'] do
   recursive true
 end
 
+runit_service "graphiti"
+
 git node['graphiti']['dir'] do
   user node['graphiti']['user']
   group node['graphiti']['user']
   repository "git://github.com/paperlesspost/graphiti.git"
   action :sync
   notifies :run, "bash[install_bundle]"
-end
-
-file "#{node['graphiti']['dir']}/.ruby-version" do
-  owner node['graphiti']['user']
-  group node['graphiti']['user']
-  mode "0644"
-  content node['graphiti']['ruby_version']
+  notifies :restart, "service[graphiti]"
 end
 
 bash "install_bundle" do
   cwd node['graphiti']['dir']
-  code <<-EOH
-  source /etc/profile
-  bundle install --path=vendor
-  EOH
+  code "bundle install --path=vendor"
   action :nothing
 end
 
@@ -72,7 +66,7 @@ template "#{node['graphiti']['dir']}/config/settings.yml" do
   group node['graphiti']['user']
   mode "0644"
   source "settings.yml.erb"
-  notifies :run, "execute[restart_graphiti]"
+  notifies :restart, "service[graphiti]"
 end
 
 directory "#{node['graphiti']['dir']}/tmp" do
@@ -80,9 +74,10 @@ directory "#{node['graphiti']['dir']}/tmp" do
   group node['graphiti']['user']
 end
 
-execute "restart_graphiti" do
-  command "touch #{node['graphiti']['dir']}/tmp/restart.txt"
-  action :nothing
+cron "graphiti:metrics" do
+  minute "*/1"
+  command "cd #{node.graphiti.dir} && bundle exec rake graphiti:metrics"
+  user "graphiti"
 end
 
 web_app "graphiti" do

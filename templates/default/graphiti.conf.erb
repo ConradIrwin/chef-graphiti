@@ -2,15 +2,10 @@
   ServerName <%= @params[:server_name] %>
   DocumentRoot <%= @params[:docroot] %>
 
-  <Directory <%= @params[:docroot] %>>
-    Order allow,deny
-    Allow from all
-    Options FollowSymLinks
-    AllowOverride None
-  </Directory>
+  <Location "/">
+    ProxyPass http://localhost:5001/
 
   <% if node['graphiti']['openid'] %>
-  <Location "/">
     AuthName "Graphiti"
     AuthType OpenID
     require user <%= node['apache']['allowed_openids'].join(' ') %>
@@ -19,8 +14,11 @@
     Order allow,deny
     Allow from <%= node['graphiti']['unauthenticated_networks'].join(' ') %>
     Satisfy any
-  </Location>
+  <% else %>
+    Order allow,deny
+    Allow from all
   <% end %>
+  </Location>
 
   LogLevel info
   ErrorLog <%= node['apache']['log_dir'] %>/<%= @params[:name] %>-error.log
