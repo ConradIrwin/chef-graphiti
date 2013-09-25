@@ -74,6 +74,11 @@ directory "#{node['graphiti']['dir']}/tmp" do
   group node['graphiti']['user']
 end
 
+directory "/var/log/graphiti" do
+  owner 'root'
+  group 'root'
+end
+
 cron "graphiti:metrics" do
   minute "*/1"
   command "cd #{node.graphiti.dir} && bundle exec rake graphiti:metrics"
