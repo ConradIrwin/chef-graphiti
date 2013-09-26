@@ -57,7 +57,7 @@ end
 
 bash "install_bundle" do
   cwd node['graphiti']['dir']
-  code "bundle install --path=vendor"
+  code "bundle check || bundle install --path=vendor --without development:test"
   action :nothing
 end
 
