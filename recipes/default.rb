@@ -81,6 +81,7 @@ end
 
 cron "graphiti:metrics" do
   minute "*/1"
+  path "/usr/local/bin:/usr/bin:/bin"
   command "cd #{node.graphiti.dir} && bundle exec rake graphiti:metrics"
   user "graphiti"
 end
